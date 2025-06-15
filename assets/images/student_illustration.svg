@@ -1,0 +1,23 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background elements -->
+  <circle cx="60" cy="60" r="40" fill="#FFFFFF" opacity="0.1"/>
+  <circle cx="90" cy="30" r="8" fill="#0066CC"/>
+  <rect x="20" y="70" width="15" height="2" rx="1" fill="#FFFFFF" opacity="0.5"/>
+  <rect x="85" y="80" width="10" height="2" rx="1" fill="#FFFFFF" opacity="0.5"/>
+  <rect x="75" y="50" width="20" height="2" rx="1" fill="#FFFFFF" opacity="0.5"/>
+  
+  <!-- Person with laptop -->
+  <g transform="translate(40, 35)">
+    <!-- Laptop -->
+    <rect x="0" y="25" width="40" height="25" rx="2" fill="#E0E0E0"/>
+    <rect x="2" y="27" width="36" height="20" rx="1" fill="#333333"/>
+    <rect x="15" y="50" width="10" height="2" rx="1" fill="#CCCCCC"/>
+    
+    <!-- Person -->
+    <circle cx="20" cy="15" r="15" fill="#FFD7C3"/> <!-- Head -->
+    <path d="M10 15 Q20 25, 30 15" stroke="#333333" stroke-width="1.5" fill="none"/> <!-- Smile -->
+    <circle cx="15" cy="12" r="1.5" fill="#333333"/> <!-- Left eye -->
+    <circle cx="25" cy="12" r="1.5" fill="#333333"/> <!-- Right eye -->
+    <path d="M5 15 Q20 -5, 35 15 L35 20 Q20 35, 5 20 Z" fill="#333333"/> <!-- Hair -->
+  </g>
+</svg>
