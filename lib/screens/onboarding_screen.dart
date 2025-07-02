@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:heroicons/heroicons.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../auth/auth_service.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -18,40 +20,62 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _buttonScaleAnimation;
+  final AuthService _authService = AuthService();
 
-  final List<OnboardingContent> _pages = [
-    OnboardingContent(
-      title: 'Изучайте казахский язык бесплатно!',
-      description: 'Присоединяйтесь к миллионам людей, изучающих языки с нами',
-      backgroundColor: const Color(0xFF58CC02),
-      secondaryColor: const Color(0xFF89E219),
-      textColor: const Color(0xFF2B2D42),
-      icon: HeroIcons.academicCap,
-      iconBackgroundColor: const Color(0xFF4ADE80),
-    ),
-    OnboardingContent(
-      title: 'Учитесь в удобном темпе',
-      description: 'Персонализированные уроки, которые адаптируются под ваш график',
-      backgroundColor: const Color(0xFF1CB0F6),
-      secondaryColor: const Color(0xFF84D8FF),
-      textColor: const Color(0xFF2B2D42),
-      icon: HeroIcons.clock,
-      iconBackgroundColor: const Color(0xFF60A5FA),
-    ),
-    OnboardingContent(
-      title: 'Практикуйтесь каждый день',
-      description: 'Всего 10 минут в день помогут вам освоить новый язык',
-      backgroundColor: const Color(0xFFFF9600),
-      secondaryColor: const Color(0xFFFFB800),
-      textColor: const Color(0xFF2B2D42),
-      icon: HeroIcons.fire,
-      iconBackgroundColor: const Color(0xFFFB923C),
-    ),
-  ];
+  List<OnboardingContent> _getLocalizedPages(AppLocalizations localizations) {
+    return [
+      OnboardingContent(
+        title: localizations.learnKazakhFree,
+        description: localizations.joinMillions,
+        backgroundColor: const Color(0xFF58CC02),
+        secondaryColor: const Color(0xFF89E219),
+        textColor: const Color(0xFF2B2D42),
+        icon: HeroIcons.academicCap,
+        iconBackgroundColor: const Color(0xFF4ADE80),
+      ),
+      OnboardingContent(
+        title: localizations.learnAtYourPace,
+        description: localizations.personalizedLessons,
+        backgroundColor: const Color(0xFF1CB0F6),
+        secondaryColor: const Color(0xFF84D8FF),
+        textColor: const Color(0xFF2B2D42),
+        icon: HeroIcons.clock,
+        iconBackgroundColor: const Color(0xFF60A5FA),
+      ),
+      OnboardingContent(
+        title: localizations.practiceDaily,
+        description: localizations.tenMinutesDaily,
+        backgroundColor: const Color(0xFFFF9600),
+        secondaryColor: const Color(0xFFFFB800),
+        textColor: const Color(0xFF2B2D42),
+        icon: HeroIcons.fire,
+        iconBackgroundColor: const Color(0xFFFB923C),
+      ),
+    ];
+  }
 
   @override
   void initState() {
     super.initState();
+    _checkAuthStatus();
+    _initializeAnimations();
+  }
+
+  Future<void> _checkAuthStatus() async {
+    // Проверяем авторизацию при загрузке экрана
+    // await _authService.initialize();
+    
+    if (_authService.isAuthenticated) {
+      // Если пользователь уже авторизован, переходим на главный экран
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/main');
+        }
+      });
+    }
+  }
+
+  void _initializeAnimations() {
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -105,172 +129,165 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     _animationController.forward();
   }
 
-  void _onNextPressed() async {
+  void _onNextPressed(List<OnboardingContent> pages) async {
     // Button press animation
     await _buttonAnimationController.forward();
     _buttonAnimationController.reverse();
     
-    if (_currentPage < _pages.length - 1) {
+    if (_currentPage < pages.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
     } else {
-      // Navigate to the main screen
-      Navigator.pushReplacementNamed(context, '/main');
+      // Инициализируем AuthService и проверяем авторизацию
+      // await _authService.initialize();
+      
+      if (_authService.isAuthenticated) {
+        // Пользователь уже авторизован - переходим на главный экран
+        if (mounted) Navigator.pushReplacementNamed(context, '/main');
+      } else {
+        // Пользователь не авторизован - переходим на логин
+        if (mounted) Navigator.pushReplacementNamed(context, '/register');
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    final pages = _getLocalizedPages(localizations);
+    
     return Scaffold(
-      body: AnimatedContainer(
-        duration: const Duration(milliseconds: 500),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.white,
-              _pages[_currentPage].backgroundColor.withOpacity(0.05),
-            ],
-          ),
-        ),
-        child: Stack(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
           children: [
-            // Floating decorative circles
-            _buildFloatingCircles(),
-            
-            SafeArea(
+            // Top bar with logo and skip
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SvgPicture.asset(
+                    'assets/icons/logo_blue.svg',
+                    height: 35,
+                  ),
+                  if (_currentPage < pages.length - 1)
+                    GestureDetector(
+                      onTap: () async {
+                        // Инициализируем AuthService и проверяем авторизацию
+                        // await _authService.initialize();
+                        
+                        if (_authService.isAuthenticated) {
+                          // Пользователь уже авторизован - переходим на главный экран
+                          if (mounted) Navigator.pushReplacementNamed(context, '/main');
+                        } else {
+                          // Пользователь не авторизован - переходим на логин
+                          if (mounted) Navigator.pushReplacementNamed(context, '/login');
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          localizations.skip,
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            // Main content
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: _onPageChanged,
+                itemCount: pages.length,
+                itemBuilder: (context, index) {
+                  return OnboardingPage(
+                    content: pages[index],
+                    fadeAnimation: _fadeAnimation,
+                    slideAnimation: _slideAnimation,
+                  );
+                },
+              ),
+            ),
+
+            // Bottom section with indicators and button
+            Container(
+              padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
-                  // Top bar with logo and skip
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        SvgPicture.asset(
-                          'assets/icons/logo_blue.svg',
-                          height: 35,
+                  // Progress indicators
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      pages.length,
+                      (index) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(horizontal: 6),
+                        height: 8,
+                        width: _currentPage == index ? 24 : 8,
+                        decoration: BoxDecoration(
+                          color: _currentPage == index
+                              ? pages[_currentPage].backgroundColor
+                              : Colors.grey[300],
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                        if (_currentPage < _pages.length - 1)
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.pushReplacementNamed(context, '/main');
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[100],
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                'Пропустить',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
+                      ),
                     ),
                   ),
 
-                  // Main content
-                  Expanded(
-                    child: PageView.builder(
-                      controller: _pageController,
-                      onPageChanged: _onPageChanged,
-                      itemCount: _pages.length,
-                      itemBuilder: (context, index) {
-                        return OnboardingPage(
-                          content: _pages[index],
-                          fadeAnimation: _fadeAnimation,
-                          slideAnimation: _slideAnimation,
-                        );
-                      },
-                    ),
-                  ),
+                  const SizedBox(height: 32),
 
-                  // Bottom section with indicators and button
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      children: [
-                        // Progress indicators
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(
-                            _pages.length,
-                            (index) => AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              margin: const EdgeInsets.symmetric(horizontal: 6),
-                              height: 8,
-                              width: _currentPage == index ? 24 : 8,
-                              decoration: BoxDecoration(
-                                color: _currentPage == index
-                                    ? _pages[_currentPage].backgroundColor
-                                    : Colors.grey[300],
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
+                  // Action button with gradient and animation
+                  ScaleTransition(
+                    scale: _buttonScaleAnimation,
+                    child: Container(
+                      width: double.infinity,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            pages[_currentPage].backgroundColor,
+                            pages[_currentPage].secondaryColor,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () => _onNextPressed(pages),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-
-                        const SizedBox(height: 32),
-
-                        // Action button
-                        ScaleTransition(
-                          scale: _buttonScaleAnimation,
-                          child: Container(
-                            width: double.infinity,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  _pages[_currentPage].backgroundColor,
-                                  _pages[_currentPage].secondaryColor,
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: _pages[_currentPage].backgroundColor
-                                      .withOpacity(0.3),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: ElevatedButton(
-                              onPressed: _onNextPressed,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                shadowColor: Colors.transparent,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: Text(
-                                _currentPage < _pages.length - 1
-                                    ? 'Продолжить'
-                                    : 'Начать обучение',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
+                        child: Text(
+                          _currentPage < pages.length - 1
+                              ? localizations.continueButton
+                              : localizations.startLearning,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ],
@@ -278,71 +295,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildFloatingCircles() {
-    return Positioned.fill(
-      child: Stack(
-        children: [
-          // Large circle - top right
-          Positioned(
-            top: -50,
-            right: -50,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              width: 150,
-              height: 150,
-              decoration: BoxDecoration(
-                color: _pages[_currentPage].backgroundColor.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          // Medium circle - middle left
-          Positioned(
-            top: MediaQuery.of(context).size.height * 0.3,
-            left: -30,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: _pages[_currentPage].secondaryColor.withOpacity(0.08),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          // Small circle - bottom left
-          Positioned(
-            bottom: 100,
-            left: 50,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: _pages[_currentPage].backgroundColor.withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          // Small circle - top left
-          Positioned(
-            top: 120,
-            left: 30,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              width: 25,
-              height: 25,
-              decoration: BoxDecoration(
-                color: _pages[_currentPage].secondaryColor.withOpacity(0.12),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -409,13 +361,6 @@ class OnboardingPage extends StatelessWidget {
                         ],
                       ),
                       borderRadius: BorderRadius.circular(90),
-                      boxShadow: [
-                        BoxShadow(
-                          color: content.iconBackgroundColor.withOpacity(0.3),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
                     ),
                     child: HeroIcon(
                       content.icon,

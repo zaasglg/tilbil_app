@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:math' as math;
 
 class QuizScreen extends StatefulWidget {
@@ -20,15 +19,16 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
   late AnimationController _bounceAnimationController;
   late AnimationController _slideInAnimationController;
   late AnimationController _fadeInAnimationController;
+  late AnimationController _rayAnimationController;
 
   // Animations
   late Animation<double> _shakeAnimation;
   late Animation<double> _bounceAnimation;
   late Animation<Offset> _slideInAnimation;
   late Animation<double> _fadeInAnimation;
+  late Animation<double> _rayAnimation;
 
-  int _currentQuestionIndex =
-      3; // Assuming we're on the 4th question (0-indexed)
+  int _currentQuestionIndex = 3; // Assuming we're on the 4th question (0-indexed)
 
   @override
   void initState() {
@@ -92,8 +92,21 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
       curve: Curves.easeIn,
     ));
 
+    // Ray animation for background rays
+    _rayAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 20),
+    );
+    _rayAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(_rayAnimationController);
+
     // Start with faded in content
     _fadeInAnimationController.value = 1.0;
+    
+    // Start ray animation
+    _rayAnimationController.repeat();
   }
 
   @override
@@ -103,222 +116,373 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
     _bounceAnimationController.dispose();
     _slideInAnimationController.dispose();
     _fadeInAnimationController.dispose();
+    _rayAnimationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF4A90E2), // Blue
+              Color(0xFF50C878), // Green
+              Color(0xFF87CEEB), // Light blue
+            ],
+            stops: [0.0, 0.6, 1.0],
+          ),
         ),
-      ),
-      body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            // Progress indicator
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(6, (index) {
-                  return _buildProgressIndicator(index < _currentQuestionIndex);
-                }),
-              ),
-            ),
-
-            const SizedBox(height: 40),
-
-            // Question
-            FadeTransition(
-              opacity: _fadeInAnimation,
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  'Что означает эта картинка?',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontFamily: 'AtypDisplay',
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            // Image
-            SvgPicture.asset(
-              'assets/images/noise.svg',
-              width: 100,
-              height: 100,
-              fit: BoxFit.contain,
-            ),
-
-            const SizedBox(height: 40),
-
-            // Answer options
-            FadeTransition(
-              opacity: _fadeInAnimation,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildAnswerOption('Ауыз'),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _buildAnswerOption('Құлақ'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildAnswerOption('Бет'),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _buildAnswerOption('Мұрын'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Result message
-            if (isCorrect != null)
-              SlideTransition(
-                position: _slideInAnimation,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    color: isCorrect!
-                        ? const Color(0xFFEBF9DF)
-                        : const Color(0xFFFBE8E8),
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        isCorrect! ? Icons.check_circle : Icons.cancel,
-                        color:
-                            isCorrect! ? const Color(0xFF76B947) : Colors.red,
-                        size: 30,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              isCorrect! ? 'Amazing!' : 'Неправильно!',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: isCorrect!
-                                    ? const Color(0xFF76B947)
-                                    : Colors.red,
+            // Animated Background Rays
+            AnimatedBuilder(
+              animation: _rayAnimation,
+              builder: (context, child) {
+                return Stack(
+                  children: List.generate(12, (index) {
+                    final angle = (index * 30.0) + (_rayAnimation.value * 360);
+                    return Positioned(
+                      top: MediaQuery.of(context).size.height * 0.3,
+                      left: MediaQuery.of(context).size.width * 0.5,
+                      child: Transform.rotate(
+                        angle: angle * math.pi / 180,
+                        child: Transform.translate(
+                          offset: const Offset(-300, 0),
+                          child: Container(
+                            width: 600,
+                            height: 2,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.white.withOpacity(0.0),
+                                  Colors.white.withOpacity(0.1),
+                                  Colors.white.withOpacity(0.0),
+                                ],
+                                stops: const [0.0, 0.5, 1.0],
                               ),
                             ),
-                            const SizedBox(height: 5),
-                            Text(
-                              'Ответ: $correctAnswer',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                );
+              },
+            ),
+            
+            // Decorative circles
+            Positioned(
+              top: 100,
+              right: -50,
+              child: Container(
+                width: 150,
+                height: 150,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.05),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 200,
+              left: -30,
+              child: Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.03),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 200,
+              left: -20,
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.04),
+                ),
+              ),
+            ),
+            
+            // Main content
+            SafeArea(
+              child: Column(
+                children: [
+                  // AppBar
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.arrow_back, color: Colors.white),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Progress indicator
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(6, (index) {
+                        return _buildProgressIndicator(index < _currentQuestionIndex);
+                      }),
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // Question
+                  FadeTransition(
+                    opacity: _fadeInAnimation,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        'Что означает эта картинка?',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontFamily: 'AtypDisplay',
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // Image
+                  Container(
+                    width: 150,
+                    height: 150,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.face_retouching_natural,
+                          size: 80,
+                          color: Colors.blue[400],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'НОС',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // Answer options
+                  FadeTransition(
+                    opacity: _fadeInAnimation,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildAnswerOption('Ауыз'),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: _buildAnswerOption('Құлақ'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildAnswerOption('Бет'),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: _buildAnswerOption('Мұрын'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Result message
+                  if (isCorrect != null)
+                    SlideTransition(
+                      position: _slideInAnimation,
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.all(15),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.95),
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: isCorrect! 
+                                    ? const Color(0xFF58CC02) 
+                                    : const Color(0xFFFF4B4B),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                isCorrect! ? Icons.check : Icons.close,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    isCorrect! ? 'Отлично!' : 'Неправильно!',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: isCorrect! 
+                                          ? const Color(0xFF58CC02) 
+                                          : const Color(0xFFFF4B4B),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Ответ: $correctAnswer',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: Color(0xFF777777),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                    ),
 
-            const Spacer(),
+                  const Spacer(),
 
-            // Next question button
-            if (isCorrect != null)
-              SlideTransition(
-                position: _slideInAnimation,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Start fade out animation
-                        _fadeInAnimationController.reverse().then((_) {
-                          setState(() {
-                            isCorrect = null;
-                            selectedAnswer = null;
-                            if (_currentQuestionIndex < 5) {
-                              _currentQuestionIndex++;
-                            }
-                          });
+                  // Next question button
+                  if (isCorrect != null)
+                    SlideTransition(
+                      position: _slideInAnimation,
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Container(
+                          width: double.infinity,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF58CC02), Color(0xFF89E219)],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF58CC02).withOpacity(0.3),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ElevatedButton(
+                            onPressed: () {
+                              // Start fade out animation
+                              _fadeInAnimationController.reverse().then((_) {
+                                setState(() {
+                                  isCorrect = null;
+                                  selectedAnswer = null;
+                                  if (_currentQuestionIndex < 5) {
+                                    _currentQuestionIndex++;
+                                  }
+                                });
 
-                          // Reset slide animation
-                          _slideInAnimationController.reset();
+                                // Reset slide animation
+                                _slideInAnimationController.reset();
 
-                          // Start fade in animation for new question
-                          _fadeInAnimationController.forward();
+                                // Start fade in animation for new question
+                                _fadeInAnimationController.forward();
 
-                          // Animate progress bar
-                          _progressAnimationController.forward(from: 0.0);
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF8BC34A),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        elevation: 5,
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Следующий вопрос',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                                // Animate progress bar
+                                _progressAnimationController.forward(from: 0.0);
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: const Text(
+                              'ПРОДОЛЖИТЬ',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.0,
+                              ),
                             ),
                           ),
-                          SizedBox(width: 8),
-                          Icon(Icons.arrow_forward, color: Colors.white),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
+                ],
               ),
+            ),
           ],
         ),
       ),
@@ -332,12 +496,12 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
       height: 6,
       margin: const EdgeInsets.symmetric(horizontal: 3),
       decoration: BoxDecoration(
-        color: isActive ? Colors.blue : Colors.grey.shade300,
+        color: isActive ? Colors.white : Colors.white.withOpacity(0.3),
         borderRadius: BorderRadius.circular(3),
         boxShadow: isActive
             ? [
                 BoxShadow(
-                  color: Colors.blue.withOpacity(0.3),
+                  color: Colors.white.withOpacity(0.3),
                   blurRadius: 4,
                   spreadRadius: 1,
                 ),
@@ -345,14 +509,13 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
             : null,
       ),
       child: isActive && _currentQuestionIndex == 3
-          ? // Only animate the current progress item
-          AnimatedBuilder(
+          ? AnimatedBuilder(
               animation: _progressAnimationController,
               builder: (context, child) {
                 return Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: const [Colors.blue, Colors.lightBlueAccent],
+                      colors: const [Colors.white, Colors.white],
                       stops: [
                         _progressAnimationController.value,
                         _progressAnimationController.value + 0.1
@@ -371,9 +534,20 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
     final bool isSelected = selectedAnswer == answer;
     final bool isCorrectAnswer = answer == correctAnswer;
 
-    Color backgroundColor = Colors.blue;
+    Color backgroundColor = Colors.white.withOpacity(0.9);
+    Color textColor = const Color(0xFF3C4043);
+    Color borderColor = Colors.white.withOpacity(0.3);
+    
     if (isSelected && isCorrect != null) {
-      backgroundColor = isCorrectAnswer ? const Color(0xFF8BC34A) : Colors.red;
+      if (isCorrectAnswer) {
+        backgroundColor = const Color(0xFF58CC02);
+        textColor = Colors.white;
+        borderColor = const Color(0xFF58CC02);
+      } else {
+        backgroundColor = const Color(0xFFFF4B4B);
+        textColor = Colors.white;
+        borderColor = const Color(0xFFFF4B4B);
+      }
     }
 
     return GestureDetector(
@@ -421,18 +595,28 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
                 height: 50,
                 decoration: BoxDecoration(
                   color: backgroundColor,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: borderColor,
+                    width: 2,
+                  ),
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: (isCorrectAnswer ? Colors.green : Colors.red)
+                            color: (isCorrectAnswer ? const Color(0xFF58CC02) : const Color(0xFFFF4B4B))
                                 .withOpacity(0.3),
                             blurRadius: 8,
                             spreadRadius: 2,
                             offset: const Offset(0, 3),
                           ),
                         ]
-                      : null,
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                 ),
                 child: Center(
                   child: Row(
@@ -440,10 +624,10 @@ class _QuizScreenState extends State<QuizScreen> with TickerProviderStateMixin {
                     children: [
                       Text(
                         answer,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: textColor,
                           fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                           fontFamily: 'AtypDisplay',
                         ),
                       ),

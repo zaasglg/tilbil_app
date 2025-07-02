@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../services/language_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -12,15 +15,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    final languageService = Provider.of<LanguageService>(context);
+    
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
-          'Настройки',
-          style: TextStyle(
+        title: Text(
+          localizations.settings,
+          style: const TextStyle(
             color: Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.w500,
@@ -31,24 +37,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Language section
-            _buildSectionHeader('Язык'),
-            _buildNavigationItem('Родной язык'),
+            _buildSectionHeader(localizations.language),
+            _buildLanguageSelector(context, languageService),
             
             const SizedBox(height: 20),
             
             // Other settings section
+            _buildSectionHeader(localizations.notifications),
+            _buildNavigationItem(localizations.notifications),
+            
+            const SizedBox(height: 20),
+            
+            _buildSectionHeader(localizations.sound),
+            _buildNavigationItem(localizations.sound),
+            
+            const SizedBox(height: 20),
+            
+            _buildSectionHeader(localizations.about),
+            _buildNavigationItem(localizations.about),
             _buildSectionHeader('Другие'),
             _buildSwitchItem('Темный режим', _isDarkModeEnabled, (value) {
               setState(() {
@@ -127,6 +139,57 @@ class _SettingsScreenState extends State<SettingsScreen> {
         onChanged: onChanged,
         activeColor: Colors.blue,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+      ),
+    );
+  }
+
+  Widget _buildLanguageSelector(BuildContext context, LanguageService languageService) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        children: LanguageService.supportedLocales.map((locale) {
+          final isSelected = languageService.currentLocale.languageCode == locale.languageCode;
+          final languageName = languageService.getLanguageName(locale.languageCode);
+          final languageFlag = languageService.getLanguageFlag(locale.languageCode);
+          
+          return Container(
+            decoration: BoxDecoration(
+              color: isSelected ? const Color(0xFFF0F4FF) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ListTile(
+              leading: Text(
+                languageFlag,
+                style: const TextStyle(fontSize: 24),
+              ),
+              title: Text(
+                languageName,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected ? const Color(0xFF4A5EFF) : Colors.black,
+                  fontFamily: "AtypDisplay",
+                ),
+              ),
+              trailing: isSelected 
+                ? const Icon(
+                    Icons.check_circle,
+                    color: Color(0xFF4A5EFF),
+                    size: 20,
+                  )
+                : null,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              onTap: () async {
+                await languageService.setLanguage(locale);
+              },
+            ),
+          );
+        }).toList(),
       ),
     );
   }

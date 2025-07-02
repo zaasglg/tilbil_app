@@ -1,0 +1,188 @@
+{
+  "@@locale": "en",
+  "appTitle": "Til Bil",
+  "@appTitle": {
+    "description": "The application title"
+  },
+  
+  "profile": "Profile",
+  "settings": "Settings",
+  "home": "Home",
+  "onboarding": "Onboarding",
+  "login": "Login",
+  "register": "Register",
+  "logout": "Logout",
+  
+  "learnKazakhFree": "Learn Kazakh language for free!",
+  "joinMillions": "Join millions of people learning languages with us",
+  "learnAtYourPace": "Learn at your own pace",
+  "personalizedLessons": "Personalized lessons that adapt to your schedule",
+  "practiceDaily": "Practice every day",
+  "tenMinutesDaily": "Just 10 minutes a day will help you master a new language",
+  
+  "continueButton": "Continue",
+  "startLearning": "Start Learning",
+  "skip": "Skip",
+  
+  "myProfile": "👤 My Profile",
+  "youngLearner": "🌟 Young Learner",
+  "beginnerExplorer": "🚀 A1 • Beginner Explorer",
+  
+  "studyTime": "Study Time",
+  "achievements": "Achievements",
+  "dayStreak": "Day Streak",
+  
+  "appSettings": "⚙️ Settings",
+  "myAchievements": "🎖️ My Achievements",
+  "security": "🔒 Security",
+  "switchUser": "🔄 Switch User",
+  "signOut": "👋 Sign Out",
+  
+  "seeYouLater": "See you later!",
+  "sureToSignOut": "Are you sure you want to sign out?",
+  "stay": "Stay",
+  "signOutAction": "Sign Out",
+  "goodbye": "Goodbye!",
+  "oopsError": "😔 Oops! Something went wrong. Try again!",
+  
+  "language": "🌍 Language",
+  "selectLanguage": "Select Language",
+  "kazakh": "Қазақша",
+  "russian": "Русский",
+  "english": "English",
+  
+  "notifications": "🔔 Notifications",
+  "sound": "🔊 Sound",
+  "theme": "🎨 Theme",
+  "about": "ℹ️ About",
+  
+  "email": "Email",
+  "password": "Password",
+  "signInToAccount": "Sign in to your account",
+  "welcomeBack": "Welcome back!",
+  "enterEmailPassword": "Enter your email and password to continue",
+  "forgotPassword": "Forgot Password?",
+  
+  "name": "Name",
+  "surname": "Surname",
+  "createAccount": "Create Account",
+  "getStarted": "Let's get started!",
+  "createAccountDescription": "Create your account to start learning",
+  "alreadyHaveAccount": "Already have an account?",
+  
+  "hours": "h",
+  "minutes": "m",
+  
+  "user": "User",
+  "beginner": "Beginner",
+  "time": "Time",
+  "daysInRow": "Days in a row",
+  "privacyPolicy": "Privacy Policy",
+  "switchUserAction": "Switch User",
+  "signOutOfAccount": "Sign out of account",
+  "account": "Account",
+  "signOutConfirmTitle": "Sign out of account",
+  "signOutConfirmMessage": "Are you sure you want to sign out of your account?",
+  "cancel": "Cancel",
+  "errorSigningOut": "Error signing out: {error}",
+  "@errorSigningOut": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "loginSuccessful": "Login successful!",
+  "loginFailed": "Login failed: {error}",
+  "@loginFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pleaseFillAllFields": "Please fill in all fields",
+  "invalidEmailFormat": "Invalid email format",
+  "passwordTooShort": "Password must be at least 6 characters",
+  "registrationSuccessful": "Registration successful!",
+  "registrationFailed": "Registration failed: {error}",
+  "@registrationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmPassword": "Confirm Password",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "dateOfBirth": "Date of Birth",
+  "selectDate": "Select Date",
+  
+  "signInWithGoogle": "Sign in with Google",
+  "noAccount": "Don't have an account? ",
+  "signUp": "Sign Up",
+  
+  "username": "Username",
+  "phoneNumber": "Phone Number",
+  "gender": "Gender",
+  "male": "Male",
+  "female": "Female",
+  "alreadyHaveAccountQuestion": "Already have an account? ",
+  
+  "hello": "Hello! 👋",
+  "readyToLearnKazakh": "Ready to learn Kazakh?",
+  "dayStreakSeries": "Day streak series",
+  "days": "days",
+  "keepGoing": "Keep going!",
+  "pronunciation": "Pronunciation",
+  "exercises": "exercises",
+  "start": "Start",
+  "completed": "Completed",
+  "yourProgress": "Your progress",
+  "alphabet": "Alphabet",
+  "almostThere": "Almost there!",
+  "grammar": "Grammar",
+  "keepItUp": "Keep it up!",
+  "greatStart": "Great start!",
+  "levelProgress": "Level progress",
+  "xp": "XP",
+  
+  "achievementsTitle": "Achievements",
+  "earnedRewards": "Earned {count} rewards out of {total}",
+  "@earnedRewards": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "quickLearner": "Quick Learner",
+  "quickLearnerDesc": "Completed 10 lessons in less than 5 minutes",
+  "ambitious": "Ambitious",
+  "ambitiousDesc": "Reached 15 learning goals",
+  "consistency": "Consistency",
+  "consistencyDesc": "Study for 30 days in a row",
+  "wordMaster": "Word Master",
+  "wordMasterDesc": "Learn 500 new words",
+  
+  "languageLevels": "Language Levels",
+  "availableLevels": "Available Levels",
+  "levelProgress": "Level Progress",
+  "currentLevel": "Current Level",
+  "nextLevel": "Next Level",
+  "continueLevel": "Continue",
+  "start": "Start",
+  "completed": "Completed",
+  "locked": "Locked",
+  
+  "selectLanguage": "Select your language",
+  "chooseLanguageDescription": "Choose the language you want to use for the app interface",
+  "english": "English",
+  "russian": "Русский",
+  "kazakh": "Қазақша",
+  "confirmLanguage": "Confirm"
+}

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
-import 'quiz_screen.dart';
-import 'text_input_quiz_screen.dart';
 
-class LanguageLevelScreen extends StatelessWidget {
+class LanguageLevelScreen extends StatefulWidget {
   final String level;
 
   const LanguageLevelScreen({
@@ -12,269 +11,404 @@ class LanguageLevelScreen extends StatelessWidget {
   });
 
   @override
+  State<LanguageLevelScreen> createState() => _LanguageLevelScreenState();
+}
+
+class _LanguageLevelScreenState extends State<LanguageLevelScreen>
+    with TickerProviderStateMixin {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _ageController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  bool _isPasswordVisible = false;
+  late AnimationController _bounceController;
+  late Animation<double> _bounceAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _bounceController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    _bounceAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _bounceController,
+      curve: Curves.elasticOut,
+    ));
+    _bounceController.forward();
+  }
+
+  @override
+  void dispose() {
+    _bounceController.dispose();
+    _nameController.dispose();
+    _ageController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
+      backgroundColor: const Color(0xFF58CC02),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              _buildHeader(),
+              _buildRegistrationForm(),
+            ],
+          ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black),
-            onPressed: () {},
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          // Назад кнопка
+          Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Анимированная сова
+          AnimatedBuilder(
+            animation: _bounceAnimation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: _bounceAnimation.value,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.face,
+                    size: 60,
+                    color: Color(0xFF58CC02),
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 24),
+
+          // Заголовок
+          const Text(
+            'Давайте знакомиться!',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontFamily: 'AtypDisplay',
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Расскажи нам о себе, чтобы мы могли\nсделать обучение еще интереснее!',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.white.withOpacity(0.9),
+              fontFamily: 'AtypDisplay',
+            ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Illustration
-            SvgPicture.asset("assets/images/businessman.svg"),
+    );
+  }
 
-            // Level title
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Text(
-                'Уровень $level',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'AtypDisplay',
+  Widget _buildRegistrationForm() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(32),
+          topRight: Radius.circular(32),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              // Декоративная полоска
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-            ),
+              const SizedBox(height: 32),
 
-            // Lessons list
-            _buildLessonItem(
-              level: '1',
-              title: 'Введение',
-              duration: '1 час 30 минут',
-              progress: 0.18,
-              progressText: '9/50',
-              color: Colors.green,
-            ),
-            const SizedBox(height: 16),
-            _buildLessonItem(
-              level: '2',
-              title: 'Грамматика',
-              duration: '1 час 45 минут',
-              progress: 0.12,
-              progressText: '5/40',
-              color: Colors.orange,
-            ),
-            const SizedBox(height: 16),
-            _buildLessonItem(
-              level: '3',
-              title: 'Словарный запас',
-              duration: '1 час 2 минуты',
-              progress: 0.04,
-              progressText: '2/50',
-              color: Colors.red,
-            ),
+              // Поле имени
+              _buildInputField(
+                controller: _nameController,
+                label: 'Как тебя зовут?',
+                icon: Icons.person_outline,
+                iconColor: const Color(0xFFFF9600),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Пожалуйста, введи свое имя';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
 
-            // Quiz type selection
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            spreadRadius: 1,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              children: [
-                                Icon(
-                                  Icons.check_box_outlined,
-                                  size: 40,
-                                  color: Colors.blue,
-                                ),
-                                const SizedBox(height: 8),
-                                const Text(
-                                  'Выбор ответа',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Выберите правильный ответ из вариантов',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const QuizScreen(),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.blue,
-                                borderRadius: const BorderRadius.only(
-                                  bottomLeft: Radius.circular(16),
-                                  bottomRight: Radius.circular(16),
-                                ),
-                              ),
-                              child: const Text(
-                                'Начать',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            spreadRadius: 1,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              children: [
-                                Icon(
-                                  Icons.text_fields,
-                                  size: 40,
-                                  color: Colors.green,
-                                ),
-                                const SizedBox(height: 8),
-                                const Text(
-                                  'Ввод текста',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Напишите правильный ответ самостоятельно',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const TextInputQuizScreen(),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.green,
-                                borderRadius: const BorderRadius.only(
-                                  bottomLeft: Radius.circular(16),
-                                  bottomRight: Radius.circular(16),
-                                ),
-                              ),
-                              child: const Text(
-                                'Начать',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+              // Поле возраста
+              _buildInputField(
+                controller: _ageController,
+                label: 'Сколько тебе лет?',
+                icon: Icons.cake_outlined,
+                iconColor: const Color(0xFFFF4B4B),
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(2),
                 ],
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Пожалуйста, введи свой возраст';
+                  }
+                  int? age = int.tryParse(value);
+                  if (age == null || age < 3 || age > 18) {
+                    return 'Возраст должен быть от 3 до 18 лет';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // Поле телефона
+              _buildInputField(
+                controller: _phoneController,
+                label: 'Номер телефона',
+                icon: Icons.phone_outlined,
+                iconColor: const Color(0xFF1CB0F6),
+                keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(11),
+                ],
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Пожалуйста, введи номер телефона';
+                  }
+                  if (value.length < 10) {
+                    return 'Номер телефона должен содержать минимум 10 цифр';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // Поле пароля
+              _buildInputField(
+                controller: _passwordController,
+                label: 'Создай пароль',
+                icon: Icons.lock_outline,
+                iconColor: const Color(0xFFCE82FF),
+                obscureText: !_isPasswordVisible,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordVisible
+                        ? Icons.visibility
+                        : Icons.visibility_off,
+                    color: Colors.grey.shade600,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordVisible = !_isPasswordVisible;
+                    });
+                  },
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Пожалуйста, создай пароль';
+                  }
+                  if (value.length < 6) {
+                    return 'Пароль должен содержать минимум 6 символов';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 32),
+
+              // Кнопка регистрации
+              _buildRegisterButton(),
+              const SizedBox(height: 24),
+
+              // Дополнительные элементы
+              _buildBottomSection(),
+              const SizedBox(height: 40),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required Color iconColor,
+    bool obscureText = false,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    String? Function(String?)? validator,
+    Widget? suffixIcon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF4B4B4B),
+            fontFamily: 'AtypDisplay',
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.grey.shade200,
+              width: 2,
+            ),
+          ),
+          child: TextFormField(
+            controller: controller,
+            obscureText: obscureText,
+            keyboardType: keyboardType,
+            inputFormatters: inputFormatters,
+            validator: validator,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              fontFamily: 'AtypDisplay',
+            ),
+            decoration: InputDecoration(
+              prefixIcon: Container(
+                margin: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                  size: 20,
+                ),
+              ),
+              suffixIcon: suffixIcon,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 20,
               ),
             ),
+          ),
+        ),
+      ],
+    );
+  }
 
-            // Start learning button (traditional)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const QuizScreen(),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE9C46A),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Учить сейчас',
-                    style: TextStyle(
-                      color: Colors.black87,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      fontFamily: 'AtypDisplay',
-                    ),
-                  ),
-                ),
+  Widget _buildRegisterButton() {
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF58CC02), Color(0xFF46A302)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF58CC02).withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: _handleRegistration,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Начать приключение!',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'AtypDisplay',
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.arrow_forward,
+                color: Colors.white,
+                size: 16,
               ),
             ),
           ],
@@ -283,201 +417,144 @@ class LanguageLevelScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildIllustration() {
-    return Container(
-      height: 240,
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Background circle
-          Positioned(
-            right: 40,
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.grey.shade200,
-              ),
+  Widget _buildBottomSection() {
+    return Column(
+      children: [
+        // Мотивирующий текст
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF4E6),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: const Color(0xFFFF9600).withOpacity(0.2),
+              width: 1,
             ),
           ),
-
-          // Plant illustration
-          Positioned(
-            left: 40,
-            bottom: 0,
-            child: Container(
-              width: 60,
-              height: 80,
-              decoration: BoxDecoration(
-                color: Colors.green.shade200,
-                borderRadius: BorderRadius.circular(8),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF9600).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.star,
+                  color: Color(0xFFFF9600),
+                  size: 20,
+                ),
               ),
-              child: const Icon(
-                Icons.spa,
-                color: Colors.green,
-                size: 40,
-              ),
-            ),
-          ),
-
-          // Chart illustration
-          Positioned(
-            right: 80,
-            child: Container(
-              width: 120,
-              height: 100,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFBE7C6),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Icon(Icons.show_chart, color: Colors.red),
-                      Icon(Icons.bar_chart, color: Colors.orange),
-                    ],
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Изучай языки играя и получай награды за успехи!',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF4B4B4B),
+                    fontFamily: 'AtypDisplay',
                   ),
-                  SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.horizontal_rule, color: Colors.black54),
-                      Icon(Icons.horizontal_rule, color: Colors.black54),
-                    ],
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
+        ),
+        const SizedBox(height: 16),
 
-          // Person illustration
-          Positioned(
-            right: 40,
-            child: Container(
-              width: 80,
-              height: 160,
-              decoration: BoxDecoration(
-                color: Colors.yellow.shade700,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.person,
-                color: Colors.white,
-                size: 60,
-              ),
-            ),
+        // Политика конфиденциальности
+        Text(
+          'Нажимая "Начать приключение!", ты соглашаешься с нашими правилами использования и политикой конфиденциальности',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey.shade600,
+            fontFamily: 'AtypDisplay',
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildLessonItem({
-    required String level,
-    required String title,
-    required String duration,
-    required double progress,
-    required String progressText,
-    required Color color,
-  }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            // Level indicator
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.school,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'LEVEL $level',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
+  void _handleRegistration() {
+    if (_formKey.currentState!.validate()) {
+      // Показываем диалог успешной регистрации
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            const SizedBox(width: 16),
-            // Lesson details
-            Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(24),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      fontFamily: 'AtypDisplay',
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF58CC02).withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check_circle,
+                      color: Color(0xFF58CC02),
+                      size: 50,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 16),
                   Text(
-                    duration,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
+                    'Добро пожаловать, ${_nameController.text}!',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
                       fontFamily: 'AtypDisplay',
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(2),
-                          child: LinearProgressIndicator(
-                            value: progress,
-                            backgroundColor: Colors.grey.shade300,
-                            valueColor: AlwaysStoppedAnimation<Color>(color),
-                            minHeight: 6,
-                          ),
+                  const Text(
+                    'Твое приключение в изучении языков начинается сейчас!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                      fontFamily: 'AtypDisplay',
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF58CC02),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        progressText,
+                      child: const Text(
+                        'Поехали!',
                         style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
                           fontFamily: 'AtypDisplay',
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
+          );
+        },
+      );
+    }
   }
 }

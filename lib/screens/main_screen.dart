@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import '../components/main_navigation.dart';
 import 'learning_screen.dart';
-import 'profile_screen.dart';
+import 'profile_screen_new.dart';
 import 'achievements_screen.dart';
 
 class MainScreen extends StatefulWidget {
