@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class MainNavigation extends StatelessWidget {
   final int currentIndex;
@@ -29,27 +29,31 @@ class MainNavigation extends StatelessWidget {
         children: [
           _buildNavItem(
             context,
-            'assets/icons/BookOpenText.svg',
-            'Учиться',
+            HugeIcons.strokeRoundedBookOpen02,
+            'Оқу',
             0,
+            const Color(0xFF58CC02),
           ),
           _buildNavItem(
             context,
-            'assets/icons/Binoculars.svg',
-            'Поиск',
+            HugeIcons.strokeRoundedMusicNote01,
+            'Материалдар',
             1,
+            const Color(0xFF1CB0F6),
           ),
           _buildNavItem(
             context,
-            'assets/icons/Trophy.svg',
-            'Достижение',
+            HugeIcons.strokeRoundedChampion,
+            'Жетістік',
             2,
+            const Color(0xFFFF9600),
           ),
           _buildNavItem(
             context,
-            'assets/icons/UserCircle.svg',
-            'Профиль',
+            HugeIcons.strokeRoundedUser,
+            'Кабинет',
             3,
+            const Color(0xFFFF4B4B),
           ),
         ],
       ),
@@ -58,12 +62,13 @@ class MainNavigation extends StatelessWidget {
 
   Widget _buildNavItem(
     BuildContext context,
-    String iconPath,
+    IconData icon,
     String label,
     int index,
+    Color iconColor,
   ) {
     final bool isSelected = currentIndex == index;
-    final Color activeColor = Theme.of(context).primaryColor;
+    final Color activeColor = iconColor;
     final Color inactiveColor = Colors.grey.shade400;
 
     return Material(
@@ -81,14 +86,12 @@ class MainNavigation extends StatelessWidget {
             children: [
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                height: isSelected ? 30 : 28,
-                width: isSelected ? 30 : 28,
-                child: SvgPicture.asset(
-                  iconPath,
-                  colorFilter: ColorFilter.mode(
-                    isSelected ? activeColor : inactiveColor,
-                    BlendMode.srcIn,
-                  ),
+                height: isSelected ? 32 : 28,
+                width: isSelected ? 32 : 28,
+                child: HugeIcon(
+                  icon: icon,
+                  color: isSelected ? activeColor : inactiveColor,
+                  size: isSelected ? 28 : 24,
                 ),
               ),
               const SizedBox(height: 6),

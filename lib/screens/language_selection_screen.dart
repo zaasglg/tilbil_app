@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../l10n/app_localizations.dart';
+import 'package:animated_button/animated_button.dart';
 import '../services/language_service.dart';
 
 class LanguageSelectionScreen extends StatefulWidget {
   const LanguageSelectionScreen({super.key});
 
   @override
-  State<LanguageSelectionScreen> createState() => _LanguageSelectionScreenState();
+  State<LanguageSelectionScreen> createState() =>
+      _LanguageSelectionScreenState();
 }
 
 class _LanguageSelectionScreenState extends State<LanguageSelectionScreen>
@@ -19,20 +21,41 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _buttonScaleAnimation;
+  late Animation<double> _button3DAnimation;
+  bool _isButtonPressed = false;
 
-  String _selectedLanguage = 'en';
+  String _selectedLanguage = 'kz';
+
+  // Light blue color palette for consistent design
+  static const Color _primaryLightBlue = Color(0xFF87CEEB); // Sky blue
+  static const Color _secondaryLightBlue = Color(0xFFADD8E6); // Light blue
+  static const Color _accentLightBlue = Color(0xFF6BB6FF); // Bright light blue
+  static const Color _backgroundLightBlue = Color(0xFFF0F8FF); // Alice blue
+  static const Color _textLightBlue = Color(0xFF4682B4); // Steel blue
 
   final List<LanguageOption> _languages = [
+    LanguageOption(
+      code: 'kk',
+      name: 'Kazakh',
+      nativeName: 'Қазақша',
+      flag: '🇰🇿',
+      color: _accentLightBlue,
+      icon: SvgPicture.asset(
+        'assets/icons/kz_flag.svg',
+        width: 32,
+        height: 32,
+      ),
+    ),
     LanguageOption(
       code: 'en',
       name: 'English',
       nativeName: 'English',
       flag: '🇺🇸',
-      color: const Color(0xFF1CB0F6),
+      color: _primaryLightBlue,
       icon: SvgPicture.asset(
         'assets/icons/us_flag.svg',
-        width: 24,
-        height: 24,
+        width: 32,
+        height: 32,
       ),
     ),
     LanguageOption(
@@ -40,23 +63,11 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen>
       name: 'Russian',
       nativeName: 'Русский',
       flag: '🇷🇺',
-      color: const Color(0xFFFF9600),
+      color: _secondaryLightBlue,
       icon: SvgPicture.asset(
         'assets/icons/ru_flag.svg',
-        width: 24,
-        height: 24,
-      ),
-    ),
-    LanguageOption(
-      code: 'kk',
-      name: 'Kazakh',
-      nativeName: 'Қазақша',
-      flag: '🇰🇿',
-      color: const Color(0xFF58CC02),
-      icon: SvgPicture.asset(
-        'assets/icons/kz_flag.svg',
-        width: 24,
-        height: 24,
+        width: 32,
+        height: 32,
       ),
     ),
   ];
@@ -71,7 +82,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen>
   Future<void> _loadSelectedLanguage() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _selectedLanguage = prefs.getString('selected_language') ?? 'en';
+      _selectedLanguage = prefs.getString('selected_language') ?? 'kz';
     });
   }
 
@@ -110,6 +121,14 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen>
       curve: Curves.easeInOut,
     ));
 
+    _button3DAnimation = Tween<double>(
+      begin: 8.0,
+      end: 2.0,
+    ).animate(CurvedAnimation(
+      parent: _buttonAnimationController,
+      curve: Curves.easeInOut,
+    ));
+
     _animationController.forward();
   }
 
@@ -124,20 +143,18 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen>
     setState(() {
       _selectedLanguage = languageCode;
     });
-    
+
     // Сохраняем выбранный язык
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('selected_language', languageCode);
-    
+
     // Обновляем язык в LanguageService
-    final languageService = Provider.of<LanguageService>(context, listen: false);
+    final languageService =
+        Provider.of<LanguageService>(context, listen: false);
     await languageService.setLanguage(Locale(languageCode));
   }
 
   Future<void> _onConfirmPressed() async {
-    await _buttonAnimationController.forward();
-    _buttonAnimationController.reverse();
-    
     // Переходим на onboarding экран
     if (mounted) {
       Navigator.pushReplacementNamed(context, '/onboarding');
@@ -147,12 +164,9 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen>
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
-    final selectedLanguageOption = _languages.firstWhere(
-      (lang) => lang.code == _selectedLanguage,
-    );
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _backgroundLightBlue,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -182,7 +196,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen>
                         style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF2B2D42),
+                          color: Colors.black,
                           height: 1.2,
                         ),
                       ),
@@ -190,9 +204,9 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen>
                       Text(
                         localizations.chooseLanguageDescription,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
-                          color: Colors.grey[600],
+                          color: _textLightBlue,
                           height: 1.5,
                         ),
                       ),
@@ -214,114 +228,100 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen>
                       itemBuilder: (context, index) {
                         final language = _languages[index];
                         final isSelected = language.code == _selectedLanguage;
-                        
+
                         return AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
-                          margin: const EdgeInsets.only(bottom: 16),
+                          margin: const EdgeInsets.only(bottom: 12),
                           child: GestureDetector(
                             onTap: () => _onLanguageSelected(language.code),
                             child: Container(
-                              padding: const EdgeInsets.all(20),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 16,
+                              ),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? language.color.withOpacity(0.1)
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? language.color
-                                      : Colors.grey[300]!,
-                                  width: isSelected ? 2 : 1,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
+                                    ? _primaryLightBlue.withOpacity(0.08)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                                border: isSelected
+                                    ? Border.all(
+                                        color:
+                                            _primaryLightBlue.withOpacity(0.3),
+                                        width: 1,
+                                      )
+                                    : null,
                               ),
                               child: Row(
                                 children: [
-                                  // Flag
-                                  // Container(
-                                  //   width: 50,
-                                  //   height: 50,
-                                  //   decoration: BoxDecoration(
-                                  //     color: language.color.withOpacity(0.1),
-                                  //     borderRadius: BorderRadius.circular(12),
-                                  //   ),
-                                  //   child: Center(
-                                  //     child: Text(
-                                  //       language.flag,
-                                  //       style: const TextStyle(fontSize: 24),
-                                  //     ),
-                                  //   ),
-                                  // ),
-
-                                  language.icon ??
+                                  // Flag icon - simplified
                                   Container(
-                                    width: 50,
-                                    height: 50,
+                                    width: 48,
+                                    height: 48,
                                     decoration: BoxDecoration(
-                                      color: language.color.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
+                                      color: isSelected
+                                          ? _primaryLightBlue.withOpacity(0.15)
+                                          : _backgroundLightBlue,
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Center(
                                       child: language.icon,
                                     ),
                                   ),
-                                  
+
                                   const SizedBox(width: 16),
-                                  
-                                  // Language names
+
+                                  // Language names - simplified typography
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           language.nativeName,
                                           style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
                                             color: isSelected
-                                                ? language.color
-                                                : const Color(0xFF2B2D42),
+                                                ? _textLightBlue
+                                                : Colors.black87,
                                           ),
                                         ),
+                                        const SizedBox(height: 2),
                                         Text(
                                           language.name,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.grey[600],
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w400,
+                                            color: Colors.black54,
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                  
-                                  // Selection indicator
+
+                                  // Selection indicator - minimalistic
                                   AnimatedContainer(
                                     duration: const Duration(milliseconds: 300),
-                                    width: 24,
-                                    height: 24,
+                                    width: 20,
+                                    height: 20,
                                     decoration: BoxDecoration(
                                       color: isSelected
-                                          ? language.color
+                                          ? _primaryLightBlue
                                           : Colors.transparent,
-                                      border: Border.all(
-                                        color: isSelected
-                                            ? language.color
-                                            : Colors.grey[400]!,
-                                        width: 2,
-                                      ),
+                                      border: isSelected
+                                          ? null
+                                          : Border.all(
+                                              color: Colors.black26,
+                                              width: 1.5,
+                                            ),
                                       shape: BoxShape.circle,
                                     ),
                                     child: isSelected
                                         ? const Icon(
                                             Icons.check,
                                             color: Colors.white,
-                                            size: 16,
+                                            size: 14,
                                           )
                                         : null,
                                   ),
@@ -338,48 +338,24 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen>
 
               const SizedBox(height: 32),
 
-              // Confirm button
+              // Confirm button - AnimatedButton
               FadeTransition(
                 opacity: _fadeAnimation,
                 child: SlideTransition(
                   position: _slideAnimation,
-                  child: ScaleTransition(
-                    scale: _buttonScaleAnimation,
-                    child: Container(
-                      width: double.infinity,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            selectedLanguageOption.color,
-                            selectedLanguageOption.color.withOpacity(0.8),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: selectedLanguageOption.color.withOpacity(0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: ElevatedButton(
-                        onPressed: _onConfirmPressed,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        child: Text(
-                          localizations.confirmLanguage,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                  child: AnimatedButton(
+                    onPressed: _onConfirmPressed,
+                    color: _primaryLightBlue,
+                    height: 60,
+                    width: MediaQuery.of(context).size.width / 1.2,
+                    shadowDegree: ShadowDegree.dark,
+                    child: Center(
+                      child: Text(
+                        localizations.confirmLanguage,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),

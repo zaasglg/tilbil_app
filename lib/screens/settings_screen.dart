@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../l10n/app_localizations.dart';
 import '../services/language_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -17,7 +17,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
     final languageService = Provider.of<LanguageService>(context);
-    
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -45,20 +45,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // Language section
             _buildSectionHeader(localizations.language),
             _buildLanguageSelector(context, languageService),
-            
+
             const SizedBox(height: 20),
-            
+
             // Other settings section
             _buildSectionHeader(localizations.notifications),
             _buildNavigationItem(localizations.notifications),
-            
+
             const SizedBox(height: 20),
-            
+
             _buildSectionHeader(localizations.sound),
             _buildNavigationItem(localizations.sound),
-            
+
             const SizedBox(height: 20),
-            
+
             _buildSectionHeader(localizations.about),
             _buildNavigationItem(localizations.about),
             _buildSectionHeader('Другие'),
@@ -143,7 +143,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildLanguageSelector(BuildContext context, LanguageService languageService) {
+  Widget _buildLanguageSelector(
+      BuildContext context, LanguageService languageService) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -153,10 +154,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       child: Column(
         children: LanguageService.supportedLocales.map((locale) {
-          final isSelected = languageService.currentLocale.languageCode == locale.languageCode;
-          final languageName = languageService.getLanguageName(locale.languageCode);
-          final languageFlag = languageService.getLanguageFlag(locale.languageCode);
-          
+          final isSelected =
+              languageService.currentLocale.languageCode == locale.languageCode;
+          final languageName =
+              languageService.getLanguageName(locale.languageCode);
+          final languageFlag =
+              languageService.getLanguageFlag(locale.languageCode);
+
           return Container(
             decoration: BoxDecoration(
               color: isSelected ? const Color(0xFFF0F4FF) : Colors.white,
@@ -176,14 +180,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   fontFamily: "AtypDisplay",
                 ),
               ),
-              trailing: isSelected 
-                ? const Icon(
-                    Icons.check_circle,
-                    color: Color(0xFF4A5EFF),
-                    size: 20,
-                  )
-                : null,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              trailing: isSelected
+                  ? const Icon(
+                      Icons.check_circle,
+                      color: Color(0xFF4A5EFF),
+                      size: 20,
+                    )
+                  : null,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               onTap: () async {
                 await languageService.setLanguage(locale);
               },

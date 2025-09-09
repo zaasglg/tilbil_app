@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:heroicons/heroicons.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../l10n/app_localizations.dart';
+import 'package:animated_button/animated_button.dart';
 import '../auth/auth_service.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -16,10 +17,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   final PageController _pageController = PageController();
   int _currentPage = 0;
   late AnimationController _animationController;
-  late AnimationController _buttonAnimationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  late Animation<double> _buttonScaleAnimation;
   final AuthService _authService = AuthService();
 
   List<OnboardingContent> _getLocalizedPages(AppLocalizations localizations) {
@@ -81,11 +80,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       duration: const Duration(milliseconds: 800),
     );
 
-    _buttonAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-    );
-
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -102,14 +96,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       curve: const Interval(0.2, 1.0, curve: Curves.elasticOut),
     ));
 
-    _buttonScaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(
-      parent: _buttonAnimationController,
-      curve: Curves.easeInOut,
-    ));
-
     _animationController.forward();
   }
 
@@ -117,7 +103,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   void dispose() {
     _pageController.dispose();
     _animationController.dispose();
-    _buttonAnimationController.dispose();
     super.dispose();
   }
 
@@ -130,10 +115,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   }
 
   void _onNextPressed(List<OnboardingContent> pages) async {
-    // Button press animation
-    await _buttonAnimationController.forward();
-    _buttonAnimationController.reverse();
-    
     if (_currentPage < pages.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 500),
@@ -142,7 +123,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     } else {
       // Инициализируем AuthService и проверяем авторизацию
       // await _authService.initialize();
-      
+
       if (_authService.isAuthenticated) {
         // Пользователь уже авторизован - переходим на главный экран
         if (mounted) Navigator.pushReplacementNamed(context, '/main');
@@ -159,7 +140,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     final pages = _getLocalizedPages(localizations);
     
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF0F8FF), // Alice blue - светло-синий фон
       body: SafeArea(
         child: Column(
           children: [
@@ -173,39 +154,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                     'assets/icons/logo_blue.svg',
                     height: 35,
                   ),
-                  if (_currentPage < pages.length - 1)
-                    GestureDetector(
-                      onTap: () async {
-                        // Инициализируем AuthService и проверяем авторизацию
-                        // await _authService.initialize();
-                        
-                        if (_authService.isAuthenticated) {
-                          // Пользователь уже авторизован - переходим на главный экран
-                          if (mounted) Navigator.pushReplacementNamed(context, '/main');
-                        } else {
-                          // Пользователь не авторизован - переходим на логин
-                          if (mounted) Navigator.pushReplacementNamed(context, '/login');
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          localizations.skip,
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
@@ -230,6 +178,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             Container(
               padding: const EdgeInsets.all(24),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Progress indicators
                   Row(
@@ -253,30 +203,18 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
                   const SizedBox(height: 32),
 
-                  // Action button with gradient and animation
-                  ScaleTransition(
-                    scale: _buttonScaleAnimation,
-                    child: Container(
-                      width: double.infinity,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            pages[_currentPage].backgroundColor,
-                            pages[_currentPage].secondaryColor,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: ElevatedButton(
+                  // Action button - AnimatedButton
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: SizedBox(
+                      key: ValueKey('button_$_currentPage'),
+                      height: 60,
+                      child: AnimatedButton(
                         onPressed: () => _onNextPressed(pages),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
+                        color: pages[_currentPage].backgroundColor,
+                        width: MediaQuery.of(context).size.width / 1.2,
+                        height: 60,
+                        shadowDegree: ShadowDegree.light,
                         child: Text(
                           _currentPage < pages.length - 1
                               ? localizations.continueButton

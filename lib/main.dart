@@ -1,5 +1,6 @@
 import 'package:another_flutter_splash_screen/another_flutter_splash_screen.dart';
 import 'package:flutter/material.dart';
+// ignore: depend_on_referenced_packages
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,28 +8,27 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/language_selection_screen.dart';
 import 'screens/onboarding_screen.dart';
-import 'screens/home_screen.dart';
 import 'screens/main_screen.dart';
 import 'auth/login_screen.dart';
 import 'auth/multi_step_register_screen.dart';
 import 'auth/auth_service.dart';
 import 'services/language_service.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Инициализируем сервисы при запуске приложения
   final authService = AuthService();
   // await authService.initialize();
-  
+
   final languageService = LanguageService();
   await languageService.initialize();
-  
+
   // Проверяем, выбрал ли пользователь язык
   final prefs = await SharedPreferences.getInstance();
   final hasSelectedLanguage = prefs.containsKey('selected_language');
-  
+
   runApp(MyApp(
     isAuthenticated: authService.isAuthenticated,
     languageService: languageService,
@@ -40,9 +40,9 @@ class MyApp extends StatelessWidget {
   final bool isAuthenticated;
   final LanguageService languageService;
   final bool hasSelectedLanguage;
-  
+
   const MyApp({
-    super.key, 
+    super.key,
     required this.isAuthenticated,
     required this.languageService,
     required this.hasSelectedLanguage,
@@ -57,7 +57,7 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'Til Bil App',
-            
+
             // Localization configuration
             localizationsDelegates: const [
               AppLocalizations.delegate,
@@ -67,17 +67,16 @@ class MyApp extends StatelessWidget {
             ],
             supportedLocales: LanguageService.supportedLocales,
             locale: languageService.currentLocale,
-            
+
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
               useMaterial3: false,
-              // fontFamily: "AtypDisplay",
-              fontFamily: GoogleFonts.nunito().fontFamily
+              textTheme: GoogleFonts.nunitoSansTextTheme(),
             ),
             routes: {
-              '/language-selection': (context) => const LanguageSelectionScreen(),
+              '/language-selection': (context) =>
+                  const LanguageSelectionScreen(),
               '/onboarding': (context) => const OnboardingScreen(),
-              '/home': (context) => const HomeScreen(),
               '/main': (context) => const MainScreen(),
               '/login': (context) => const LoginScreen(),
               '/register': (context) => const MultiStepRegisterScreen(),
@@ -91,12 +90,8 @@ class MyApp extends StatelessWidget {
                   Color(0xFF3371B9),
                 ],
               ),
-              onInit: () {
-                // debugPrint("On Init");
-              },
-              onEnd: () {
-                // debugPrint("On End");
-              },
+              onInit: () {},
+              onEnd: () {},
               childWidget: SizedBox(
                 height: 200,
                 width: 200,
@@ -104,7 +99,7 @@ class MyApp extends StatelessWidget {
               ),
               duration: const Duration(milliseconds: 3000),
               onAnimationEnd: () => debugPrint("On Fade In End"),
-              nextScreen: LanguageSelectionScreen(),
+              nextScreen: const LanguageSelectionScreen(),
             ),
           );
         },

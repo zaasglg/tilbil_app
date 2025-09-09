@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_svg/svg.dart';
+import '../l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../models/achievement.dart';
 import '../services/achievement_service.dart';
@@ -68,7 +69,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
-    
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
@@ -79,17 +80,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
           icon: Container(
             width: 32,
             height: 32,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF3371B9).withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
             child: const Icon(
               Icons.arrow_back_ios_new_rounded,
               color: Color(0xFF2D3748),
@@ -165,7 +155,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                       children: [
                         _buildProgressCard(),
                         const SizedBox(height: 20),
-                        
+
                         // Achievements section title
                         Text(
                           localizations.achievementsTitle,
@@ -175,9 +165,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                             color: Color(0xFF2D3748),
                           ),
                         ),
-                        
+
                         const SizedBox(height: 12),
-                        
+
                         // Dynamic achievement cards
                         ..._buildAchievementCards(context, localizations),
                       ],
@@ -191,16 +181,16 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     return Builder(
       builder: (context) {
         final localizations = AppLocalizations.of(context)!;
-        
+
         // Use stats from API if available, otherwise calculate from achievements
-        final unlockedCount = _stats.isNotEmpty 
+        final unlockedCount = _stats.isNotEmpty
             ? 0 ?? _achievements.where((a) => a.isUnlocked).length
             : _achievements.where((a) => a.isUnlocked).length;
-        final totalCount = _stats.isNotEmpty 
+        final totalCount = _stats.isNotEmpty
             ? 6 ?? _achievements.length
             : _achievements.length;
         final progress = totalCount > 0 ? unlockedCount / totalCount : 0.0;
-        
+
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.all(20),
@@ -226,8 +216,10 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                       child: CircularProgressIndicator(
                         value: progress,
                         strokeWidth: 4,
-                        backgroundColor: const Color(0xFF3371B9).withOpacity(0.1),
-                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF3371B9)),
+                        backgroundColor:
+                            const Color(0xFF3371B9).withOpacity(0.1),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                            Color(0xFF3371B9)),
                       ),
                     ),
                     Center(
@@ -288,16 +280,18 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     );
   }
 
-  List<Widget> _buildAchievementCards(BuildContext context, AppLocalizations localizations) {
-    final languageService = Provider.of<LanguageService>(context, listen: false);
+  List<Widget> _buildAchievementCards(
+      BuildContext context, AppLocalizations localizations) {
+    final languageService =
+        Provider.of<LanguageService>(context, listen: false);
     final currentLanguageCode = languageService.currentLocale.languageCode;
-    
+
     return _achievements.map((achievement) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: _buildAchievementCard(
           context,
-          color: achievement.isUnlocked 
+          color: achievement.isUnlocked
               ? _getAchievementColor(achievement.type)
               : const Color(0xFF718096),
           title: achievement.getTitle(currentLanguageCode),
@@ -371,7 +365,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isUnlocked ? color.withOpacity(0.2) : const Color(0xFF718096).withOpacity(0.1),
+          color: isUnlocked
+              ? color.withOpacity(0.2)
+              : const Color(0xFF718096).withOpacity(0.1),
           width: 1,
         ),
       ),
@@ -382,7 +378,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: isUnlocked ? color.withOpacity(0.1) : const Color(0xFF718096).withOpacity(0.1),
+              color: isUnlocked
+                  ? color.withOpacity(0.1)
+                  : const Color(0xFF718096).withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -403,7 +401,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                     Text(
                       title,
                       style: TextStyle(
-                        color: isUnlocked ? const Color(0xFF2D3748) : const Color(0xFF718096),
+                        color: isUnlocked
+                            ? const Color(0xFF2D3748)
+                            : const Color(0xFF718096),
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -434,7 +434,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                 Text(
                   description,
                   style: TextStyle(
-                    color: isUnlocked ? const Color(0xFF718096) : const Color(0xFF718096).withOpacity(0.7),
+                    color: isUnlocked
+                        ? const Color(0xFF718096)
+                        : const Color(0xFF718096).withOpacity(0.7),
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
                   ),

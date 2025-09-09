@@ -1,197 +1,185 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class LoadingPage extends StatefulWidget {
+  const LoadingPage({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _LoadingPageState createState() => _LoadingPageState();
 }
 
 class _LoadingPageState extends State<LoadingPage>
     with TickerProviderStateMixin {
-  late AnimationController _rotationController;
-  late AnimationController _fadeController;
-  late AnimationController _scaleController;
-  late AnimationController _bounceController;
+  late AnimationController _pulseController;
+  late AnimationController _slideController;
+  late AnimationController _progressController;
+  late AnimationController _sparkleController;
 
-  late Animation<double> _rotationAnimation;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _bounceAnimation;
+  late Animation<double> _pulseAnimation;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _progressAnimation;
+  late Animation<double> _sparkleAnimation;
+
+  int _currentTextIndex = 0;
+  final List<String> _loadingTexts = [
+    'Профиліңіз дайындалуда...',
+    'Сабақтар жүктелуде...',
+    'Дайын!',
+  ];
 
   @override
   void initState() {
     super.initState();
     
-    _rotationController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat();
-
-    _fadeController = AnimationController(
+    // Pulse animation for character
+    _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
 
-    _scaleController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+    // Slide animation for content
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 800),
       vsync: this,
     );
 
-    _bounceController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+    // Progress animation
+    _progressController = AnimationController(
+      duration: const Duration(milliseconds: 1800),
       vsync: this,
     );
 
-    _rotationAnimation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(CurvedAnimation(
-      parent: _rotationController,
-      curve: Curves.linear,
-    ));
+    // Sparkle animation
+    _sparkleController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
+    _pulseAnimation = Tween<double>(
+      begin: 0.95,
+      end: 1.05,
     ).animate(CurvedAnimation(
-      parent: _fadeController,
+      parent: _pulseController,
       curve: Curves.easeInOut,
     ));
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.5,
-      end: 1.0,
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.5),
+      end: Offset.zero,
     ).animate(CurvedAnimation(
-      parent: _scaleController,
+      parent: _slideController,
       curve: Curves.elasticOut,
     ));
 
-    _bounceAnimation = Tween<double>(
+    _progressAnimation = Tween<double>(
       begin: 0.0,
-      end: 15.0,
+      end: 1.0,
     ).animate(CurvedAnimation(
-      parent: _bounceController,
+      parent: _progressController,
+      curve: Curves.easeInOut,
+    ));
+
+    _sparkleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _sparkleController,
       curve: Curves.easeInOut,
     ));
 
     // Start animations
-    _fadeController.forward();
-    _scaleController.forward();
+    _slideController.forward();
+    _pulseController.repeat(reverse: true);
+    _progressController.forward();
+    _sparkleController.repeat();
 
-    // Start bounce animation after a delay
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (mounted) {
-        _bounceController.repeat(reverse: true);
+    // Text cycling animation
+    _startTextCycling();
+
+    // Navigate after loading completes
+    _progressController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            HapticFeedback.lightImpact();
+            Navigator.of(context).pushReplacementNamed('/main');
+          }
+        });
       }
     });
+  }
 
-    // Navigate to main page after 3 seconds
-    Timer(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/main');
+  void _startTextCycling() {
+    Timer.periodic(const Duration(milliseconds: 600), (timer) {
+      if (mounted && _currentTextIndex < _loadingTexts.length - 1) {
+        setState(() {
+          _currentTextIndex++;
+        });
+        HapticFeedback.selectionClick();
+      } else {
+        timer.cancel();
       }
     });
   }
 
   @override
   void dispose() {
-    _rotationController.dispose();
-    _fadeController.dispose();
-    _scaleController.dispose();
-    _bounceController.dispose();
+    _pulseController.dispose();
+    _slideController.dispose();
+    _progressController.dispose();
+    _sparkleController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE3F2FD),
-      body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF4FC3F7), // Light blue
+              Color(0xFF29B6F6), // Medium blue
+              Color(0xFF1976D2), // Darker blue
+            ],
+            stops: [0.0, 0.5, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: Stack(
             children: [
-              // Animated character/logo
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: AnimatedBuilder(
-                    animation: _bounceAnimation,
-                    builder: (context, child) {
-                      return Transform.translate(
-                        offset: Offset(0, -_bounceAnimation.value),
-                        child: Image.asset(
-                          'assets/images/character.png',
-                          width: 150,
-                          height: 150,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              width: 150,
-                              height: 150,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Color(0xFF58CC02),
-                                    Color(0xFF45A002),
-                                  ],
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.person,
-                                color: Colors.white,
-                                size: 75,
-                              ),
-                            );
-                          },
-                        ),
-                      );
-                    },
+              // Floating sparkles background
+              _buildSparklesBackground(),
+              
+              // Main content
+              SlideTransition(
+                position: _slideAnimation,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Character with glow effect
+                      _buildAnimatedCharacter(),
+
+                      const SizedBox(height: 60),
+
+                      // Progress indicator with modern design
+                      _buildModernProgressIndicator(),
+
+                      const SizedBox(height: 40),
+
+                      // Dynamic loading text
+                      _buildDynamicLoadingText(),
+
+                      const SizedBox(height: 80),
+                    ],
                   ),
                 ),
-              ),
-
-              const SizedBox(height: 40),
-
-
-              const SizedBox(height: 30),
-
-              // Loading text
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: const Text(
-                  'Профиліңіз жасалуда...',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF333333),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: const Text(
-                  'Күте тұрыңыз',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFF666666),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 60),
-
-              // Progress dots
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: _buildProgressDots(),
               ),
             ],
           ),
@@ -200,57 +188,213 @@ class _LoadingPageState extends State<LoadingPage>
     );
   }
 
-  Widget _buildProgressDots() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(3, (index) {
-        return AnimatedBuilder(
-          animation: _rotationController,
-          builder: (context, child) {
-            double delay = index * 0.3;
-            double animationValue = (_rotationController.value + delay) % 1.0;
-            double scale = 0.5 + 0.5 * (1 - (animationValue - 0.5).abs() * 2).clamp(0.0, 1.0);
-
-            return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF2196F3).withOpacity(0.3 + 0.7 * scale),
+  Widget _buildSparklesBackground() {
+    return AnimatedBuilder(
+      animation: _sparkleController,
+      builder: (context, child) {
+        return Stack(
+          children: List.generate(15, (index) {
+            final random = Random(index);
+            final x = random.nextDouble() * MediaQuery.of(context).size.width;
+            final y = random.nextDouble() * MediaQuery.of(context).size.height;
+            final delay = random.nextDouble();
+            final animationValue = (_sparkleController.value + delay) % 1.0;
+            
+            return Positioned(
+              left: x,
+              top: y,
+              child: Opacity(
+                opacity: (sin(animationValue * pi * 2) + 1) / 2 * 0.6,
+                child: Transform.scale(
+                  scale: 0.5 + (sin(animationValue * pi * 2) + 1) / 4,
+                  child: Container(
+                    width: 4,
+                    height: 4,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
               ),
-              transform: Matrix4.identity()..scale(scale),
+            );
+          }),
+        );
+      },
+    );
+  }
+
+  Widget _buildAnimatedCharacter() {
+    return AnimatedBuilder(
+      animation: _pulseAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _pulseAnimation.value,
+          child: Container(
+            width: 180,
+            height: 180,
+            child: Container(
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFFFFFFFF),
+                    Color(0xFFF5F5F5),
+                  ],
+                ),
+              ),
+              padding: const EdgeInsets.all(20),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/images/character.png',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFF58CC02),
+                            Color(0xFF45A002),
+                          ],
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.school,
+                        color: Colors.white,
+                        size: 80,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildModernProgressIndicator() {
+    return Column(
+      children: [
+        // Progress bar
+        Container(
+          width: 280,
+          height: 12,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: AnimatedBuilder(
+            animation: _progressAnimation,
+            builder: (context, child) {
+              return FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: _progressAnimation.value,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF81C784),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        
+        const SizedBox(height: 16),
+        
+        // Progress percentage
+        AnimatedBuilder(
+          animation: _progressAnimation,
+          builder: (context, child) {
+            return Text(
+              '${(_progressAnimation.value * 100).toInt()}%',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.2,
+              ),
             );
           },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDynamicLoadingText() {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: animation.drive(
+              Tween<Offset>(
+                begin: const Offset(0, 0.3),
+                end: Offset.zero,
+              ),
+            ),
+            child: child,
+          ),
         );
-      }),
+      },
+      child: Column(
+        key: ValueKey<int>(_currentTextIndex),
+        children: [
+          Text(
+            _loadingTexts[_currentTextIndex],
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              letterSpacing: 0.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          
+          const SizedBox(height: 12),
+          
+          if (_currentTextIndex < _loadingTexts.length - 1)
+            Text(
+              'Тағы сәл күте тұрыңыз...',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                color: Colors.white,
+                letterSpacing: 0.3,
+              ),
+              textAlign: TextAlign.center,
+            )
+          else
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.check_circle,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'Дайын!',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
     );
   }
-}
-
-class LoadingPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = const Color(0xFF58CC02)
-      ..strokeWidth = 4
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final Rect rect = Rect.fromCircle(
-      center: Offset(size.width / 2, size.height / 2),
-      radius: size.width / 2 - 2,
-    );
-
-    canvas.drawArc(
-      rect,
-      -1.57, // Start from top
-      1.57, // Quarter circle
-      false,
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
